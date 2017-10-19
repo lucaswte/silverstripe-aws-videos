@@ -1,0 +1,15 @@
+{
+    "name": "advanced-learning/silverstripe-aws-videos",
+    "description": "A SilverStripe module for integrating videos with S3 and Elastic Transcoder",
+    "type": "silverstripe-module",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Conrad Dobbs",
+            "email": "riddler400@gmail.com"
+        }
+    ],
+    "require": {
+        "silverstripe/framework": "~3.1"
+    }
+}
