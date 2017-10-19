@@ -359,6 +359,7 @@ class AWSVideoService implements VideoService
     {
         $filename = basename($path);
 
+        echo self::config()->get('bucket');exit;
         $adapter = new AwsS3Adapter($this->getS3Client(), self::config()->get('bucket'));
         $filesystem = new Filesystem($adapter);
 

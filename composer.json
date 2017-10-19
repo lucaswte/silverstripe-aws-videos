@@ -18,5 +18,8 @@
         "psr-4": {
             "AdvancedLearning\\AWSVideos\\": "src"
         }
+    },
+    "extra": {
+        "installer-name": "aws-videos"
     }
 }
