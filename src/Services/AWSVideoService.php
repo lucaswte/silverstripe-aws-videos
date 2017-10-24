@@ -531,7 +531,7 @@ class AWSVideoService implements VideoService
      */
     protected function getAWSKey()
     {
-        return getenv('AWS_VIDEO_KEY') ?: self::config()->aws_key;
+        return defined('AWS_VIDEO_KEY') ? AWS_VIDEO_KEY : self::config()->get('aws_key');
     }
 
     /**
@@ -541,6 +541,6 @@ class AWSVideoService implements VideoService
      */
     protected function getAWSSecret()
     {
-        return getenv('AWS_VIDEO_SECRET') ?: self::config()->aws_secret;
+        return defined('AWS_VIDEO_SECRET') ? AWS_VIDEO_SECRET : self::config()->get('aws_secret');
     }
 }
