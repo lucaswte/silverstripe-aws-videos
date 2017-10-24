@@ -11,6 +11,14 @@ class AWSVideo extends DataObject implements VideoModel
 
     private static $plural_name = 'AWS Videos';
 
+    /**
+     * Base URL for videos, typically CDN or other hosting service.
+     *
+     * @config
+     * @var string
+     */
+    private static $video_base_url;
+
     private static $db = [
         'Original' => 'Varchar(150)',
         'DeleteUploaded' => 'Boolean',
@@ -29,13 +37,36 @@ class AWSVideo extends DataObject implements VideoModel
         'File' => 'File'
     ];
 
+    private static $summary_fields = [
+        'Thumb' => 'Thumb',
+        'Original' => 'Original',
+        'Submitted.Nice' => 'Submitted'
+    ];
+
+    private static $casting = [
+        'Thumb' => 'HTMLText',
+        'Fallbacks' => 'ArrayList'
+    ];
+
+    public function onBeforeWrite()
+    {
+        parent::onBeforeWrite();
+
+        // set original filename
+        if ($this->File()->exists()) {
+            $this->Original = basename($this->File()->Filename);
+        }
+    }
+
     public function onAfterWrite()
     {
         parent::onAfterWrite();
 
         if ($this->File()->exists() && !$this->Submitted)
         {
-//            Injector::inst()->get('VideoService')->queue($this->ID);
+            $this->getVideoService()->queue($this->ID);
+            $this->Submitted = true;
+            $this->write();
         }
     }
 
@@ -120,15 +151,104 @@ class AWSVideo extends DataObject implements VideoModel
 
     /**
      * @inheritdoc
+     *
      * @return array|null
      */
     public function getJobData()
     {
-        return $this->Job ? json_decode($this->Job) : null;
+        return $this->Job ? json_decode($this->Job, true) : null;
     }
 
+    /**
+     * @inheritdoc
+     *
+     * @return void
+     */
     public function persist()
     {
         $this->write();
+    }
+
+    /**
+     * Gets an image tag for thumbnail. Used for summary fields.
+     *
+     * @return string
+     */
+    public function Thumb()
+    {
+        return DBField::create_field('HTMLText', $this->Thumbnail
+            ? "<img src=\"{$this->getHostedThumbnail()}\" style=\"width: 100px; height: auto;\">"
+            : '');
+    }
+
+    /**
+     * Gets hosted url of the thumbnail.
+     *
+     * @return string
+     */
+    public function getHostedThumbnail()
+    {
+       return $this->getHostedUrl($this->Thumbnail);
+    }
+
+    /**
+     * Gets hosted url of the playlist file.
+     *
+     * @return string
+     */
+    public function getHostedPlaylist()
+    {
+        return $this->getHostedUrl($this->Playlist);
+    }
+
+    /**
+     * Gets the full hosted url (appends video_base_url).
+     *
+     * @param string $url Relative url.
+     *
+     * @return string
+     */
+    private function getHostedUrl($url)
+    {
+        return self::config()->get('video_base_url') . '/' . $url;
+    }
+
+    /**
+     * Generates fallbacks to be used for video source tag.
+     *
+     * @return array
+     */
+    public function getFallbacks()
+    {
+        $outputs = $this->getOutputs();
+
+        $fallbacks = [];
+
+        foreach ($outputs['Videos'] as $video) {
+            $file = new SplFileInfo($video);
+            $fallbacks[$this->getVideoService()->typeFromExt($file->getExtension())] = $this->getHostedUrl($video);
+        }
+
+        return $fallbacks;
+    }
+
+    /**
+     * Returns getFallbacks as JSON.
+     *
+     * @return string
+     */
+    public function getFallbacksJSON()
+    {
+        return json_encode($this->getFallbacks());
+    }
+
+    /**
+     * Get the video service.
+     *
+     * @return AdvancedLearning\AWSVideos\Services\AWSVideoService
+     */
+    protected function getVideoService()
+    {
+        return Injector::inst()->get('AdvancedLearning\AWSVideos\Services\VideoService');
     }
 }

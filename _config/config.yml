@@ -1,51 +1,5 @@
-AdvancedLearning\Services\AWSVideoService:
-  # buckets
-  bucket: 'write-that-essay-videos'
-  transcoded_bucket: 'write-that-essay-videos-transcoded'
-
-  # job settings
-  pipeline: '1508200162578-zdnx4y'
-  playlist: 'mpeg-dash'
-  playlist_outputs:
-     - 1351620000001-500020
-     - 1351620000001-500030
-     - 1351620000001-500040
-     - 1351620000001-500050
-  outputs:
-    # standard webm
-    1508203787554-mfqo9i:
-      Key: '{name}.webm'
-
-    # standard mp4
-    1508203848730-0mmiit:
-      ThumbnailPattern: '{name}-{count}.jpg'
-      Key: '{name}.mp4'
-
-    # mpeg-dash 4.8m
-    1351620000001-500020:
-      Key: '{name}-4800k.mp4'
-      SegmentDuration: '10'
-
-    # mpeg-dash 2.4m
-    1351620000001-500030:
-      Key: '{name}-2400k.mp4'
-      SegmentDuration: '10'
-
-    # mpeg-dash 1.2m
-    1351620000001-500040:
-      Key: '{name}-1200k.mp4'
-      SegmentDuration: '10'
-
-    # mpeg-dash 600k
-    1351620000001-500030:
-      Key: '{name}-600k.mp4'
-      SegmentDuration: '10'
-
-  # store all output files in their own directory
-  use_directory: true
-
 Injector:
-  AdvancedLearning\Services\VideoService:
+  AdvancedLearning\AWSVideos\Services\VideoService:
     class: AdvancedLearning\AWSVideos\Services\AWSVideoService
     constructor:
       0: '%$AWSVideo'

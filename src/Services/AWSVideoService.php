@@ -10,9 +10,11 @@ use Aws\S3\S3Client;
 use function basename;
 use DevTaskRun;
 use function getenv;
+use function in_array;
 use InvalidArgumentException;
 use League\Flysystem\AwsS3v2\AwsS3Adapter;
 use League\Flysystem\Filesystem;
+use const PHP_EOL;
 use function str_replace;
 use function strrpos;
 
@@ -102,9 +104,26 @@ class AWSVideoService implements VideoService
     /**
      * Outputs to include in the playist. Array of the preset ids.
      *
+     * @config
      * @var array
      */
     protected static $playlist_outputs;
+
+    /**
+     * File extension of the thumbnail. Used to get the thumbnail file name.
+     *
+     * @config
+     * @var string
+     */
+    protected $thumbnail_extension;
+
+    /**
+     * The thumbail to use. Number of thumbnails are generated based on the interval set. Defaults to 1 (first).
+     *
+     * @config
+     * @var integer
+     */
+    protected $thumbnail_number = 1;
 
     /**
      * If true, output files are stored inside a directory the same as the input filename with no extension.
@@ -192,7 +211,7 @@ class AWSVideoService implements VideoService
         );
 
         // record AWS job so we can lookup later
-        $video->setJob($job)
+        $video->setJobData($job)
             ->persist();
 
         // setup check to see if it is transcoded
@@ -219,7 +238,7 @@ class AWSVideoService implements VideoService
         $job = $client->readJob(['Id' => $originalJob['Id']])->get('Job');
 
         if ($job && $job['Status']) {
-            if ($job['Status'] === 'complete') {
+            if (strtolower($job['Status']) === 'complete') {
                 $this->complete($video, $job);
             } else {
                 $this->queueCheck($id);
@@ -243,7 +262,7 @@ class AWSVideoService implements VideoService
         $playlist = '';
 
         if (!empty($job['Playlists'])) {
-            $playlist = $job['Playlists'][0]['Name'];
+            $playlist = $job['Playlists'][0]['Name'] . '.' . self::config()->get('playlist_extension');
         }
 
         $video->setOutputs($outputs, $playlist, $thumbnail);
@@ -276,14 +295,20 @@ class AWSVideoService implements VideoService
         $outputs = [];
 
         foreach ($job['Outputs'] as $output) {
-            $outputs[] = $output['Key'];
+            // don't include files in playlist
+            if (
+                !self::config()->get('playlist_outputs') ||
+                !in_array($output['Key'], self::config()->get('playlist_outputs'))
+            ) {
+                $outputs[] = $output['Key'];
+            }
         }
 
         return $outputs;
     }
 
     /**
-     * Extracts the first thumbnail from output.
+     * Extracts the first thumbnail from output. Assumes only one output generates a thumbnail.
      *
      * @param array $job The job data.
      *
@@ -297,9 +322,9 @@ class AWSVideoService implements VideoService
                 // return the first thumbnail
                 return str_replace(
                     ['{name}', '{count}'],
-                    [$this->setExtension($output['Key'], null), '00001'],
+                    [$this->setExtension($output['Key'], null), '0000' . self::config()->get('thumbnail_number')],
                     $output['ThumbnailPattern']
-                );
+                ) . '.' . self::config()->get('thumbnail_extension');
             }
         }
 
@@ -359,7 +384,6 @@ class AWSVideoService implements VideoService
     {
         $filename = basename($path);
 
-        echo self::config()->get('bucket');exit;
         $adapter = new AwsS3Adapter($this->getS3Client(), self::config()->get('bucket'));
         $filesystem = new Filesystem($adapter);
 
@@ -411,6 +435,8 @@ class AWSVideoService implements VideoService
     protected function transcode($path, $pipeline, $outputs, $playlist = null, array $playlistOutputs = null)
     {
         $filename = basename($path);
+        $name = $this->setExtension($filename, null);
+        $prefix = self::config()->get('use_directory') ? $prefix = $name . '/' : '';
 
         $job = [
             'PipelineId' => $pipeline,
@@ -422,14 +448,13 @@ class AWSVideoService implements VideoService
 
         // setup outputs
         foreach ($outputs as $preset => $config) {
-            $name = $this->setExtension($filename, null);
-
             // replace name in key
-            $config['Key'] = str_replace('{name}', $name, $config['Key']);
+            $config['Key'] = $prefix . str_replace('{name}', $name, $config['Key']);
+
 
             // replace name in thumbnail
             if (!empty($config['ThumbnailPattern'])) {
-                $config['ThumbnailPattern'] = str_replace('{name}', $name, $config['ThumbnailPattern']);
+                $config['ThumbnailPattern'] = $prefix . str_replace('{name}', $name, $config['ThumbnailPattern']);
             }
 
             // set preset
@@ -442,13 +467,13 @@ class AWSVideoService implements VideoService
         if ($playlist) {
             $playlistConfig = [
                 'Format' => $playlist,
-                'Name' => $this->setExtension($filename, 'mpd'),
+                'Name' => $prefix . $name,
                 'OutputKeys' => []
             ];
 
             // add outputs to playlist
             foreach ($job['Outputs'] as $output) {
-                if (in_array($output['Key'], $playlistOutputs)) {
+                if (in_array($output['PresetId'], $playlistOutputs)) {
                     $playlistConfig['OutputKeys'][] = $output['Key'];
                 }
             }
@@ -481,16 +506,22 @@ class AWSVideoService implements VideoService
     }
 
     /**
-     * Replaces extension on filename with the passed extension.
+     * Replaces extension on filename with the passed extension. If no extension is passed, the extension is removed.
      *
      * @param string $filename The filename to have extension replaced.
      * @param string $ext      The extension to be used.
      *
      * @return string
      */
-    protected function setExtension($filename, $ext)
+    protected function setExtension($filename, $ext = null)
     {
-        return substr($filename, 0, strrpos($filename, '.')) . '.' . $ext;
+        $name = substr($filename, 0, strrpos($filename, '.'));
+
+        if (null !== $ext) {
+            $name .= '.' . $ext;
+        }
+
+        return $name;
     }
 
     /**
@@ -510,6 +541,6 @@ class AWSVideoService implements VideoService
      */
     protected function getAWSSecret()
     {
-        return getenv('AWS_VIDEO_KEY') ?: self::config()->aws_secret;
+        return getenv('AWS_VIDEO_SECRET') ?: self::config()->aws_secret;
     }
 }

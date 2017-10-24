@@ -1,0 +1,60 @@
+AdvancedLearning\AWSVideos\Services\AWSVideoService:
+  # buckets
+  bucket: 'source-bucket'
+  transcoded_bucket: 'destination-bucket'
+
+  # job settings
+  pipeline: '1508200162578-zdnx4y'
+  playlist: 'MPEG-DASH'
+  playlist_extension: 'mpd'
+  playlist_outputs:
+     - 1351620000001-500020
+     - 1351620000001-500030
+     - 1351620000001-500040
+     - 1351620000001-500050
+     - 1351620000001-500060
+  outputs:
+    # standard webm
+    1508203787554-mfqo9i:
+      Key: '{name}.webm'
+
+    # standard mp4
+    1508799500943-r8t8i6:
+      ThumbnailPattern: '{name}-{count}'
+      Key: '{name}.mp4'
+
+    # mpeg-dash 4.8m
+    1351620000001-500020:
+      Key: '{name}-4800k.mp4'
+      SegmentDuration: '2'
+
+    # mpeg-dash 2.4m
+    1351620000001-500030:
+      Key: '{name}-2400k.mp4'
+      SegmentDuration: '2'
+
+    # mpeg-dash 1.2m
+    1351620000001-500040:
+      Key: '{name}-1200k.mp4'
+      SegmentDuration: '2'
+
+    # mpeg-dash 600k
+    1351620000001-500050:
+      Key: '{name}-600k.mp4'
+      SegmentDuration: '2'
+
+    # mpeg-dash audio
+    1351620000001-500050:
+      Key: '{name}-audio.mp4'
+      SegmentDuration: '2'
+
+  # configured on preset in AWS
+  thumbnail_extension: 'jpg'
+  # which thumbnail to use
+  thumbnail_number: 2
+
+  # store all output files in their own directory
+  use_directory: true
+
+AWSVideo:
+  video_base_url: 'https://dxds323dz.cloudfront.net'
