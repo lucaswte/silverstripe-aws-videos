@@ -14,6 +14,7 @@ use function in_array;
 use InvalidArgumentException;
 use League\Flysystem\AwsS3v2\AwsS3Adapter;
 use League\Flysystem\Filesystem;
+use function method_exists;
 use const PHP_EOL;
 use function str_replace;
 use function strrpos;
@@ -240,6 +241,8 @@ class AWSVideoService implements VideoService
         if ($job && $job['Status']) {
             if (strtolower($job['Status']) === 'complete') {
                 $this->complete($video, $job);
+            } else if (strtolower($job['Status']) === 'error') {
+                throw new \Exception('Failed to process video ' . $video->getVideoPath());
             } else {
                 $this->queueCheck($id);
             }
@@ -280,6 +283,11 @@ class AWSVideoService implements VideoService
         // make thumbnail public
         if (!empty($thumbnail)) {
             $this->publish($thumbnail);
+        }
+
+        // trigger complete on video
+        if (method_exists($video, 'onProcessingComplete')) {
+            $video->onProcessingComplete();
         }
     }
 

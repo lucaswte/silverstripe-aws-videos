@@ -16,7 +16,11 @@ class TranscodeVideoCheckTask extends BuildTask
     public function run($request)
     {
        if ($id = $request->getVar('ID')) {
-           Injector::inst()->get('AdvancedLearning\AWSVideos\Services\VideoService')->check($id);
+           try {
+               Injector::inst()->get('AdvancedLearning\AWSVideos\Services\VideoService')->check($id);
+           } catch (Exception $e) {
+               SS_Log::log($e->getMessage(), SS_Log::ERR);
+           }
        }
     }
 }
