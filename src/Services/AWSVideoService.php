@@ -301,12 +301,13 @@ class AWSVideoService implements VideoService
     protected function extractVideoOutputs(array $job)
     {
         $outputs = [];
+        $playlistOutputs = self::config()->get('playlist_outputs');
 
         foreach ($job['Outputs'] as $output) {
             // don't include files in playlist
             if (
-                !self::config()->get('playlist_outputs') ||
-                !in_array($output['Key'], self::config()->get('playlist_outputs'))
+                !$playlistOutputs ||
+                !in_array($output['PresetId'], $playlistOutputs)
             ) {
                 $outputs[] = $output['Key'];
             }
