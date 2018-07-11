@@ -1,7 +1,7 @@
 {
     "name": "advanced-learning/silverstripe-aws-videos",
     "description": "A SilverStripe module for integrating videos with S3 and Elastic Transcoder",
-    "type": "silverstripe-module",
+    "type": "silverstripe-vendormodule",
     "license": "MIT",
     "authors": [
         {
