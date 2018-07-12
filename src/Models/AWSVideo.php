@@ -1,12 +1,22 @@
 <?php
 
-use AdvancedLearning\AWSVideos\Models\VideoModel;
+namespace AdvancedLearning\AWSVideos\Models;
+
+use AdvancedLearning\AWSVideos\Services\AWSVideoService;
+use AdvancedLearning\AWSVideos\Services\VideoService;
+use SilverStripe\Assets\File;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\FieldType\DBField;
+use SplFileInfo;
 
 /**
  * Represents a video stored in AWS
  */
 class AWSVideo extends DataObject implements VideoModel
 {
+    private static $table_name = "AWSVideo";
+
     private static $singular_name = 'AWS Video';
 
     private static $plural_name = 'AWS Videos';
@@ -34,7 +44,7 @@ class AWSVideo extends DataObject implements VideoModel
     ];
 
     private static $has_one = [
-        'File' => 'File'
+        'File' => File::class,
     ];
 
     private static $summary_fields = [
@@ -245,10 +255,11 @@ class AWSVideo extends DataObject implements VideoModel
     /**
      * Get the video service.
      *
-     * @return AdvancedLearning\AWSVideos\Services\AWSVideoService
+     * @return AWSVideoService
+     * @throws \Psr\Container\NotFoundExceptionInterface
      */
     protected function getVideoService()
     {
-        return Injector::inst()->get('AdvancedLearning\AWSVideos\Services\VideoService');
+        return Injector::inst()->get(VideoService::class);
     }
 }

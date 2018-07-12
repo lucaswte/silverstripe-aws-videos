@@ -1,27 +1,19 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Conrad
- * Date: 18/10/2017
- * Time: 10:42 AM
- */
+
+use AdvancedLearning\AWSVideos\Services\VideoService;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Dev\BuildTask;
 
 class TranscodeVideoTask extends BuildTask
 {
-    /**
-     * Execute the task.
-     *
-     * @param SS_HTTPRequest $request
-     */
     public function run($request)
     {
        if ($id = $request->getVar('ID')) {
            try {
-               Injector::inst()->get('AdvancedLearning\AWSVideos\Services\VideoService')->commit($id);
+               Injector::inst()->get(VideoService::class)->commit($id);
            } catch (Exception $e) {
-               SS_Log::log($e->getMessage(), SS_Log::ERR);
+			   Injector::inst()->get(LoggerInterface::class)->error($e->getMessage());
            }
        }
     }
-
 }

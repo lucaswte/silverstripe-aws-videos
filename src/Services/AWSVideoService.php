@@ -3,25 +3,23 @@
 namespace AdvancedLearning\AWSVideos\Services;
 
 
-use AdvancedLearning\AWSVideos\Config\Configurable;
+use SilverStripe\Core\Config\Configurable;
 use AdvancedLearning\AWSVideos\Models\VideoModel;
 use Aws\ElasticTranscoder\ElasticTranscoderClient;
 use Aws\S3\S3Client;
 use function basename;
-use DevTaskRun;
-use function getenv;
+use Webtorque\DevTaskRunner\Models\DevTaskRun;
 use function in_array;
 use InvalidArgumentException;
 use League\Flysystem\AwsS3v2\AwsS3Adapter;
 use League\Flysystem\Filesystem;
 use function method_exists;
-use const PHP_EOL;
 use function str_replace;
 use function strrpos;
 
 class AWSVideoService implements VideoService
 {
-    use Configurable;
+	use Configurable;
 
     /**
      * @var S3Client
