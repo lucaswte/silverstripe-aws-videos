@@ -4,11 +4,16 @@ namespace AdvancedLearning\AWSVideos\Models;
 
 use AdvancedLearning\AWSVideos\Services\AWSVideoService;
 use AdvancedLearning\AWSVideos\Services\VideoService;
+use League\Flysystem\Exception;
+use League\Flysystem\FileExistsException;
+use League\Flysystem\FileNotFoundException;
 use SilverStripe\Assets\File;
+use SilverStripe\Control\Director;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\FieldType\DBField;
 use SplFileInfo;
+use SilverStripe\Assets\Storage\AssetStore;
 
 /**
  * Represents a video stored in AWS
@@ -140,10 +145,12 @@ class AWSVideo extends DataObject implements VideoModel
      * @inheritdoc
      *
      * @return string
+     *
+     * @throws Exception
      */
     public function getVideoPath()
     {
-        return $this->File()->getFullPath();
+        return $this->File()->getAbsoluteURL();
     }
 
     /**

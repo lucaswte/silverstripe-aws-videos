@@ -2,8 +2,8 @@
 
 namespace AdvancedLearning\AWSVideos\Config;
 
-use \Config;
-use \Deprecation;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Dev\Deprecation;
 
 /**
  * 3.* compatible configurable trait.
@@ -19,11 +19,11 @@ trait Configurable
     /**
      * Get a configuration accessor for this class. Short hand for Config::inst()->get($this->class, .....).
      *
-     * @return \Config_ForClass
+     * @return \SilverStripe\Core\Config\Config_ForClass
      */
     public static function config()
     {
-        return Config::inst()->forClass(get_called_class());
+        return Config::forClass(get_called_class());
     }
 
     /**

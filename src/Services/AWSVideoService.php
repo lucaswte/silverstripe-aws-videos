@@ -3,15 +3,19 @@
 namespace AdvancedLearning\AWSVideos\Services;
 
 
-use SilverStripe\Core\Config\Configurable;
+use AdvancedLearning\AWSVideos\Config\Configurable;
 use AdvancedLearning\AWSVideos\Models\VideoModel;
+use AdvancedLearning\AWSVideos\Tasks\TranscodeVideoCheckTask;
+use AdvancedLearning\AWSVideos\Tasks\TranscodeVideoTask;
+use Aws\Credentials\Credentials;
 use Aws\ElasticTranscoder\ElasticTranscoderClient;
 use Aws\S3\S3Client;
 use function basename;
+use SilverStripe\Core\Environment;
 use Webtorque\DevTaskRunner\Models\DevTaskRun;
 use function in_array;
 use InvalidArgumentException;
-use League\Flysystem\AwsS3v2\AwsS3Adapter;
+use League\Flysystem\AwsS3v3\AwsS3Adapter;
 use League\Flysystem\Filesystem;
 use function method_exists;
 use function str_replace;
@@ -154,7 +158,7 @@ class AWSVideoService implements VideoService
     public function queue($id)
     {
         $task = DevTaskRun::create([
-            'Task' => 'TranscodeVideoTask',
+            'Task' => TranscodeVideoTask::class,
             'Params' => 'ID=' . $id,
             'Status' => 'Queued'
         ]);
@@ -172,7 +176,7 @@ class AWSVideoService implements VideoService
     public function queueCheck($id)
     {
         $task = DevTaskRun::create([
-            'Task' => 'TranscodeVideoCheckTask',
+            'Task' => TranscodeVideoCheckTask::class,
             'Params' => 'ID=' . $id,
             'Status' => 'Queued'
         ]);
@@ -346,7 +350,9 @@ class AWSVideoService implements VideoService
     protected function getS3Client()
     {
         if (!$this->s3Client) {
-            $this->s3Client = S3Client::factory($this->getAWSConfig());
+            $config = $this->getAWSConfig();
+            $config['version'] = '2006-03-01';
+            $this->s3Client = new S3Client($config);
         }
 
         return $this->s3Client;
@@ -360,7 +366,9 @@ class AWSVideoService implements VideoService
     protected function getTranscoderClient()
     {
         if (!$this->transcoderClient) {
-            $this->transcoderClient = ElasticTranscoderClient::factory($this->getAWSConfig());
+            $config = $this->getAWSConfig();
+            $config['version'] = '2012-09-25';
+            $this->transcoderClient = new ElasticTranscoderClient($config);
         }
 
         return $this->transcoderClient;
@@ -373,11 +381,12 @@ class AWSVideoService implements VideoService
      */
     protected function getAWSConfig()
     {
+
         return [
-            'credentials' => [
-                'key' => $this->getAWSKey(),
-                'secret' => $this->getAWSSecret()
-            ],
+            'credentials' => new Credentials(
+                $this->getAWSKey(),
+                $this->getAWSSecret()
+            ),
             'region' => 'ap-southeast-2'
         ];
     }
@@ -538,7 +547,7 @@ class AWSVideoService implements VideoService
      */
     protected function getAWSKey()
     {
-        return defined('AWS_VIDEO_KEY') ? AWS_VIDEO_KEY : self::config()->get('aws_key');
+        return Environment::getEnv('AWS_VIDEO_KEY') ?: self::config()->get('aws_key');
     }
 
     /**
@@ -548,6 +557,6 @@ class AWSVideoService implements VideoService
      */
     protected function getAWSSecret()
     {
-        return defined('AWS_VIDEO_SECRET') ? AWS_VIDEO_SECRET : self::config()->get('aws_secret');
+        return Environment::getEnv('AWS_VIDEO_SECRET') ?: self::config()->get('aws_secret');
     }
 }

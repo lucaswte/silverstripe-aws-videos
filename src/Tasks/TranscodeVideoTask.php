@@ -1,11 +1,16 @@
 <?php
 
+namespace AdvancedLearning\AWSVideos\Tasks;
+
 use AdvancedLearning\AWSVideos\Services\VideoService;
+use Psr\Log\LoggerInterface;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\BuildTask;
 
 class TranscodeVideoTask extends BuildTask
 {
+    protected $title = "TranscodeVideoTask";
+
     public function run($request)
     {
        if ($id = $request->getVar('ID')) {
