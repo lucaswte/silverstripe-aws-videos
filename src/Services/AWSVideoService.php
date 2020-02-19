@@ -379,7 +379,8 @@ class AWSVideoService implements VideoService
                 'key' => $this->getAWSKey(),
                 'secret' => $this->getAWSSecret()
             ],
-            'region' => 'ap-southeast-2'
+            'region' => 'ap-southeast-2',
+            'version' => '2006-03-01'
         ];
     }
 
