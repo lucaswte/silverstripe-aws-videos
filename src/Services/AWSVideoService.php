@@ -361,7 +361,10 @@ class AWSVideoService implements VideoService
     protected function getTranscoderClient()
     {
         if (!$this->transcoderClient) {
-            $this->transcoderClient = ElasticTranscoderClient::factory($this->getAWSConfig());
+            $config = $this->getAWSConfig();
+            // set transcoder api version
+            $config['version'] = '2012-09-25';
+            $this->transcoderClient = new ElasticTranscoderClient($config);
         }
 
         return $this->transcoderClient;
