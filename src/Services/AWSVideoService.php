@@ -2,7 +2,6 @@
 
 namespace AdvancedLearning\AWSVideos\Services;
 
-
 use AdvancedLearning\AWSVideos\Config\Configurable;
 use AdvancedLearning\AWSVideos\Models\VideoModel;
 use Aws\ElasticTranscoder\ElasticTranscoderClient;
@@ -12,7 +11,7 @@ use DevTaskRun;
 use function getenv;
 use function in_array;
 use InvalidArgumentException;
-use League\Flysystem\AwsS3v2\AwsS3Adapter;
+use League\Flysystem\AwsS3v3\AwsS3Adapter;
 use League\Flysystem\Filesystem;
 use function method_exists;
 use const PHP_EOL;
@@ -348,7 +347,7 @@ class AWSVideoService implements VideoService
     protected function getS3Client()
     {
         if (!$this->s3Client) {
-            $this->s3Client = S3Client::factory($this->getAWSConfig());
+            $this->s3Client = new S3Client($this->getAWSConfig());
         }
 
         return $this->s3Client;
