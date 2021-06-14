@@ -264,13 +264,14 @@ class AWSVideoService implements VideoService
         // get transcoded outputs
         $outputs = $this->extractVideoOutputs($job);
         $thumbnail = $this->extractThumbnail($job);
+        $duration = $this->extractVideoDuration($job);
         $playlist = '';
 
         if (!empty($job['Playlists'])) {
             $playlist = $job['Playlists'][0]['Name'] . '.' . self::config()->get('playlist_extension');
         }
 
-        $video->setOutputs($outputs, $playlist, $thumbnail);
+        $video->setOutputs($outputs, $playlist, $thumbnail, $duration);
 
         // make files public
         foreach ($outputs as $output) {
@@ -316,6 +317,27 @@ class AWSVideoService implements VideoService
         }
 
         return $outputs;
+    }
+
+    /**
+     * Gets the duration(seconds) of video outputs.
+     *
+     * @param array $job The job data.
+     *
+     * @return integer
+     */
+    protected function extractVideoDuration(array $job): int
+    {
+        $duration = 0;
+        $durationOutput = self::config()->get('duration');
+
+        $output = $job['Output'];
+
+        if (is_array($output) && $durationOutput !== null && isset($output[$durationOutput])) {
+            $duration = $output[$durationOutput];
+        }
+
+        return $duration;
     }
 
     /**

@@ -41,7 +41,8 @@ class AWSVideo extends DataObject implements VideoModel
         'Videos' => 'Text',
         'Thumbnail' => 'Varchar(255)',
         'Playlist' => 'Varchar(255)',
-        'Job' => 'Text'
+        'Job' => 'Text',
+        'Duration' => 'Int',
     ];
 
     private static $defaults = [
@@ -90,7 +91,7 @@ class AWSVideo extends DataObject implements VideoModel
      *
      * @return static
      */
-    public function setOutputs(array $outputs, $playlist = null, $thumbnail = null)
+    public function setOutputs(array $outputs, $playlist = null, $thumbnail = null, int $duration = 0)
     {
         $this->Videos = json_encode($outputs);
 
@@ -101,6 +102,8 @@ class AWSVideo extends DataObject implements VideoModel
         if (null !== $thumbnail) {
             $this->Thumbnail = $thumbnail;
         }
+
+        $this->Duration = $duration;
 
         $this->write();
 
