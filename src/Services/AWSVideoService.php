@@ -2,7 +2,6 @@
 
 namespace AdvancedLearning\AWSVideos\Services;
 
-
 use AdvancedLearning\AWSVideos\Config\Configurable;
 use AdvancedLearning\AWSVideos\Models\VideoModel;
 use AdvancedLearning\AWSVideos\Tasks\TranscodeVideoCheckTask;
@@ -372,9 +371,7 @@ class AWSVideoService implements VideoService
     protected function getS3Client()
     {
         if (!$this->s3Client) {
-            $config = $this->getAWSConfig();
-            $config['version'] = '2006-03-01';
-            $this->s3Client = new S3Client($config);
+            $this->s3Client = new S3Client($this->getAWSConfig());
         }
 
         return $this->s3Client;
@@ -389,6 +386,7 @@ class AWSVideoService implements VideoService
     {
         if (!$this->transcoderClient) {
             $config = $this->getAWSConfig();
+            // set transcoder api version
             $config['version'] = '2012-09-25';
             $this->transcoderClient = new ElasticTranscoderClient($config);
         }
@@ -403,13 +401,13 @@ class AWSVideoService implements VideoService
      */
     protected function getAWSConfig()
     {
-
         return [
-            'credentials' => new Credentials(
-                $this->getAWSKey(),
-                $this->getAWSSecret()
-            ),
-            'region' => 'ap-southeast-2'
+            'credentials' => [
+                'key' => $this->getAWSKey(),
+                'secret' => $this->getAWSSecret()
+            ],
+            'region' => 'ap-southeast-2',
+            'version' => '2006-03-01'
         ];
     }
 
