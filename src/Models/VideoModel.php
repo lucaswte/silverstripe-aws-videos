@@ -30,13 +30,14 @@ interface VideoModel
     /**
      * Store any outputs from video processing.
      *
-     * @param array  $outputs   Array of video outputs.
-     * @param string $playlist  Optional path of playlist.
-     * @param string $thumbnail The path to the thumbnail.
+     * @param array   $outputs   Array of video outputs.
+     * @param string  $playlist  Optional path of playlist.
+     * @param string  $thumbnail The path to the thumbnail.
+     * @param integer $duration  The duration of video.
      *
      * @return static
      */
-    public function setOutputs(array $outputs, $playlist = null, $thumbnail = null);
+    public function setOutputs(array $outputs, $playlist = null, $thumbnail = null, int $duration = 0);
 
     /**
      * Get the outputs from previous video processing.

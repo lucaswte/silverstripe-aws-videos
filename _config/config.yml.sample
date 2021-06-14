@@ -53,6 +53,9 @@ AdvancedLearning\AWSVideos\Services\AWSVideoService:
   # which thumbnail to use
   thumbnail_number: 2
 
+  # video duration (seconds)
+  duration: 'Duration'
+
   # store all output files in their own directory
   use_directory: true
 

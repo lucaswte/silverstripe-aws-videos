@@ -261,13 +261,14 @@ class AWSVideoService implements VideoService
         // get transcoded outputs
         $outputs = $this->extractVideoOutputs($job);
         $thumbnail = $this->extractThumbnail($job);
+        $duration = $this->extractVideoDuration($job);
         $playlist = '';
 
         if (!empty($job['Playlists'])) {
             $playlist = $job['Playlists'][0]['Name'] . '.' . self::config()->get('playlist_extension');
         }
 
-        $video->setOutputs($outputs, $playlist, $thumbnail);
+        $video->setOutputs($outputs, $playlist, $thumbnail, $duration);
 
         // make files public
         foreach ($outputs as $output) {
