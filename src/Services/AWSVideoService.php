@@ -317,6 +317,27 @@ class AWSVideoService implements VideoService
     }
 
     /**
+     * Gets the duration(seconds) of video outputs.
+     *
+     * @param array $job The job data.
+     *
+     * @return integer
+     */
+    protected function extractVideoDuration(array $job): int
+    {
+        $duration = 0;
+        $durationOutput = self::config()->get('duration');
+
+        $output = $job['Output'];
+
+        if (is_array($output) && $durationOutput !== null && isset($output[$durationOutput])) {
+            $duration = $output[$durationOutput];
+        }
+
+        return $duration;
+    }
+
+    /**
      * Extracts the first thumbnail from output. Assumes only one output generates a thumbnail.
      *
      * @param array $job The job data.
